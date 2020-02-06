@@ -14,14 +14,51 @@ const dbOpen = sqlite.open('./database.db', { Promise });
     }).finally
 });*/
 
-routes.get('/select', async (req, res) => {
+routes.get('/select/', async (req, res) => {
     try {
         const db = await dbOpen;
         const sqlSelect = 'SELECT * from products';
         const rows = await db.all(sqlSelect);
         res.json(rows);
-    } catch {
+    } catch (err) {
+        res.json(err);
+    }
+});
 
+routes.get('/select/:id', async (req, res) => {
+    try {
+        const sqlSelectId = 'SELECT * from products WHERE art_nr = ?';
+        const db = await dbOpen;
+        const id = req.params.id;
+        const row = await db.all(sqlSelectId, id);
+        res.json(row);
+    } catch (err) {
+        res.json(err);
+    }
+});
+
+routes.post('/insert/', async (req, res) => {
+    try {
+        const sqlInsert = 'INSERT INTO products (name, category) VALUES(?,?)';
+        const db = await dbOpen;
+        const name = req.body.name;
+        const category = req.body.category;
+        db.run(sqlInsert, name, category);
+        res.json({ status: 'insert ok' });
+    } catch (err) {
+        res.json(err);
+    }
+});
+
+routes.delete('/delete/:id', async (req, res) => {
+    try {
+        const sqlDeleteId = 'DELETE FROM products WHERE art_nr = ?';
+        const db = await dbOpen;
+        const delId = req.params.id;
+        db.run(sqlDeleteId, delId);
+        res.json({status : `Product with art nr ${delId} has ben deleted!`});
+    } catch (err) {
+        res.json(err);
     }
 });
 
