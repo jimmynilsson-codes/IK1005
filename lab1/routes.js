@@ -1,4 +1,29 @@
 const routes = require('express').Router();
+const Promise = require('bluebird');
+const sqlite = require('sqlite');
+
+const dbOpen = sqlite.open('./database.db', { Promise });
+
+/*routes.get('/select', async (req, res) => {
+    const db = await dbOpen;
+    db.all('SELECT * FROM products')
+    .then( (rows) => {
+        res.json(rows);
+    }).catch( (e) => {
+        res.send(e);
+    }).finally
+});*/
+
+routes.get('/select', async (req, res) => {
+    try {
+        const db = await dbOpen;
+        const sqlSelect = 'SELECT * from products';
+        const rows = await db.all(sqlSelect);
+        res.json(rows);
+    } catch {
+
+    }
+});
 
 const products = [
     { id: '1', name: 'Product 1' },
@@ -39,7 +64,7 @@ routes.post('/product', (req, res) => {
 });
 
 routes.delete('/product/:id', (req, res) => {
-    for (let i = products.length-1; i > 0; i--) {
+    for (let i = products.length - 1; i > 0; i--) {
         if (products[i].id == req.params.id) {
             products.splice(i, 1);
         }
