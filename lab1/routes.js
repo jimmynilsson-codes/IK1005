@@ -1,8 +1,8 @@
 const routes = require('express').Router();
 
 const products = [
-    { id: '1', name: 'prod1' },
-    { id: '2', name: 'prod2' }
+    { id: '1', name: 'Product 1' },
+    { id: '2', name: 'Product 2' }
 ];
 
 routes.get('/', (req, res) => {
@@ -33,8 +33,16 @@ routes.post('/product', (req, res) => {
     if (!found) {
         products.push(data);
         res.json({ status: 'ok' });
-    } else{
+    } else {
         res.status(400).send(`Product with id ${data.id} already exists!`);
+    }
+});
+
+routes.delete('/product/:id', (req, res) => {
+    for (let i = products.length-1; i > 0; i--) {
+        if (products[i].id == req.params.id) {
+            products.splice(i, 1);
+        }
     }
 });
 
