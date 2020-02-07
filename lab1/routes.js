@@ -1,23 +1,14 @@
 const routes = require('express').Router();
 const Promise = require('bluebird');
 const sqlite = require('sqlite');
+const database = require('./database');
 
 const dbOpen = sqlite.open('./database.db', { Promise });
 
-/*routes.get('/select', async (req, res) => {
-    const db = await dbOpen;
-    db.all('SELECT * FROM products')
-    .then( (rows) => {
-        res.json(rows);
-    }).catch( (e) => {
-        res.send(e);
-    }).finally
-});*/
-
-routes.get('/select/', async (req, res) => {
+routes.get('/sqlselect/', async (req, res) => {
     try {
         const db = await dbOpen;
-        const sqlSelect = 'SELECT * from products';
+        const sqlSelect = 'SELECT id, name, category from products';
         const rows = await db.all(sqlSelect);
         res.json(rows);
     } catch (err) {
@@ -25,19 +16,26 @@ routes.get('/select/', async (req, res) => {
     }
 });
 
-routes.get('/select/:id', async (req, res) => {
+routes.get('/sqlselect/:id', async (req, res) => {
     try {
-        const sqlSelectId = 'SELECT * from products WHERE art_nr = ?';
-        const db = await dbOpen;
         const id = req.params.id;
+        const sqlSelectId = 'SELECT id, name, category from products WHERE  id = ?';
+        const db = await dbOpen;
         const row = await db.all(sqlSelectId, id);
-        res.json(row);
+        const productExists = row.find(() => {
+            return true;
+        });
+        if (productExists) {
+            res.json(row);
+        } else {
+            res.json(`Product with id ${id} was not found!`);
+        }
     } catch (err) {
         res.json(err);
     }
 });
 
-routes.post('/insert/', async (req, res) => {
+routes.post('/sqlinsert/', async (req, res) => {
     try {
         const sqlInsert = 'INSERT INTO products (name, category) VALUES(?,?)';
         const db = await dbOpen;
@@ -50,22 +48,17 @@ routes.post('/insert/', async (req, res) => {
     }
 });
 
-routes.delete('/delete/:id', async (req, res) => {
+routes.delete('/sqldelete/:id', async (req, res) => {
     try {
-        const sqlDeleteId = 'DELETE FROM products WHERE art_nr = ?';
+        const sqlDeleteId = 'DELETE FROM products WHERE id = ?';
         const db = await dbOpen;
         const delId = req.params.id;
-        db.run(sqlDeleteId, delId);
-        res.json({status : `Product with art nr ${delId} has ben deleted!`});
+        db.run(sqlDeleteArtNr, delArtnr);
+        res.json({ status: `Product with id ${delId} has ben deleted!` });
     } catch (err) {
         res.json(err);
     }
 });
-
-const products = [
-    { id: '1', name: 'Product 1' },
-    { id: '2', name: 'Product 2' }
-];
 
 routes.get('/', (req, res) => {
     res.send('h06jimni@du.se');
@@ -97,14 +90,6 @@ routes.post('/product', (req, res) => {
         res.json({ status: 'ok' });
     } else {
         res.status(400).send(`Product with id ${data.id} already exists!`);
-    }
-});
-
-routes.delete('/product/:id', (req, res) => {
-    for (let i = products.length - 1; i > 0; i--) {
-        if (products[i].id == req.params.id) {
-            products.splice(i, 1);
-        }
     }
 });
 
