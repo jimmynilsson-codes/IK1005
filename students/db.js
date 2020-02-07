@@ -41,18 +41,18 @@ const getStudent = async (student_id) => {
     const database = await dbOpen;
     const selectStudent = 'SELECT student_id, firstname, lastname, age FROM students WHERE student_id = ?';
 
-    const row = await database.all(selectStudent, student_id);
+    const rowOfStudent = await database.all(selectStudent, student_id);
 
-    return row;
+    return rowOfStudent;
 };
 
 const getStudents = async () => {
     const database = await dbOpen;
     const selectStudents = 'SELECT student_id, firstname, lastname, age FROM students';
 
-    const rows = await database.all(selectStudents);
+    const rowsOfStudents = await database.all(selectStudents);
     
-    return rows;
+    return rowsOfStudents;
 };
 
 exports.getStudents = getStudents;
