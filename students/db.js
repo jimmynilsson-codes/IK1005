@@ -6,7 +6,7 @@ const dbOpen = sqlite.open('./database.db', { Promise });
 const updateStudent = async (firstname, lastname, age, studentId) => {
     const database = await dbOpen;
     const sqlUpdateStudent = 'UPDATE students SET firstname = ?, lastname = ?, age = ? WHERE student_id = ?';
-    
+
     const outdatedStudent = await getStudent(studentId);
 
     await database.run(sqlUpdateStudent, firstname, lastname, age, studentId);
@@ -51,12 +51,15 @@ const getStudents = async () => {
     const selectStudents = 'SELECT student_id, firstname, lastname, age FROM students';
 
     const rowsOfStudents = await database.all(selectStudents);
-    
+
     return rowsOfStudents;
 };
 
-exports.getStudents = getStudents;
-exports.getStudent = getStudent;
-exports.addStudent = addStudent;
-exports.deleteStudent = deleteStudent;
-exports.updateStudent = updateStudent;
+module.exports =
+{
+    getStudents: getStudents,
+    getStudent: getStudent,
+    addStudent: addStudent,
+    deleteStudent: deleteStudent,
+    updateStudent: updateStudent
+}
