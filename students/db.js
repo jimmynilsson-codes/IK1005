@@ -1,5 +1,6 @@
 const sqlite = require('sqlite');
 const Promise = require('bluebird');
+const bcrypt = require('bcrypt');
 
 const dbOpen = sqlite.open('./database.db', { Promise });
 
@@ -55,11 +56,25 @@ const getStudents = async () => {
     return rowsOfStudents;
 };
 
+const studentIdExists = async (studentId) => {
+    const database = await dbOpen;
+    const selectStudentId = 'SELECT student_id FROM students WHERE student_id = ?';
+
+    const idExists = await database.get(selectStudentId, studentId);
+
+    if (idExists) {
+        return true;
+    } else {
+        return false;
+    }
+}
+
 module.exports =
 {
     getStudents: getStudents,
     getStudent: getStudent,
     addStudent: addStudent,
     deleteStudent: deleteStudent,
-    updateStudent: updateStudent
+    updateStudent: updateStudent,
+    studentIdExists: studentIdExists,
 }
