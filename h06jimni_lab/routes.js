@@ -1,5 +1,6 @@
 const routes = require('express').Router();
 const products = require('./products');
+const users = require('./users');
 
 routes.get('/', (req, res) => {
     res.json({ user: 'h06jimni@du.se' });
@@ -57,8 +58,69 @@ routes.put('/updateproduct/:id', async (req, res) => {
         const productPrice = req.body.price;
         const productCategoryId = req.body.category_id;
 
-        await products.putProduct(productName, productDesc, productPrice, productCategoryId, productId);
+        await products.updProduct(productName, productDesc, productPrice, productCategoryId, productId);
         res.json({ status: 'Product updated.' });
+    } catch (error) {
+        res.json(error);
+    }
+});
+
+routes.get('/getusers/', async (req, res) => {
+    try {
+        const usersInDb = await users.getUsers();
+
+        res.json(usersInDb);
+    } catch (error) {
+        res.json(error);
+    }
+});
+
+routes.get('/getuser/:id', async (req, res) => {
+    try {
+        userId = req.params.id;
+        const userInDb = await users.getUser(userId);
+
+        res.json(userInDb);
+    } catch (error) {
+        res.json(error);
+    }
+});
+
+routes.post('/adduser/', async (req, res) => {
+    try {
+        const userEmail = req.body.email;
+        const userFirstname = req.body.firstname;
+        const userLastname = req.body.lastname;
+        const userPassword = req.body.password;
+
+        await users.addUser(userEmail, userFirstname, userLastname, userPassword);
+        res.json({ status: 'User added.' });
+    } catch (error) {
+        res.json(error);
+    }
+});
+
+routes.delete('/deluser/:id', async (req, res) => {
+    try {
+        const userId = req.params.id;
+
+        await users.delUser(userId);
+        res.json({ status: 'User has been deleted.' });
+    } catch (error) {
+        res.json(error);
+    }
+});
+
+routes.put('/updateuser/:id', async (req, res) => {
+    try {
+        const userEmail = req.body.email;
+        const userFirstname = req.body.firstname;
+        const userLastname = req.body.lastname;
+        const userPassword = req.body.password;
+        const userId = req.params.id;
+
+        await users.updUser(userEmail, userFirstname, userLastname, userPassword, userId);
+        res.json({status: 'User have been updated.'});
     } catch (error) {
         res.json(error);
     }

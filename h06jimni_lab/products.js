@@ -63,5 +63,5 @@ module.exports = {
     getProduct: selectProduct,
     addProduct: insertProduct,
     delProduct: deleteProduct,
-    putProduct: updateProduct,
+    updProduct: updateProduct,
 };
