@@ -6,7 +6,7 @@ const dbCon = sqlite.open('./h06jimni_db.db', { Promise });
 selectProducts = async () => {
     try {
         const db = await dbCon;
-        const selectAllProducts = 'SELECT name, description, price, id, category_id FROM products';
+        const selectAllProducts = 'SELECT products.name AS product_name, category.name AS category_name, products.description AS product_description, products.price AS product_price, products.id as product_id FROM products INNER JOIN category ON category.category_id = products.category_id';
         const allProdRows = await db.all(selectAllProducts);
 
         return allProdRows;

@@ -1,5 +1,7 @@
 const sqlite = require('sqlite');
 const Promise = require('bluebird');
+const bcrypt = require('bcrypt');
+const saltrounds = 10;
 
 const dbCon = sqlite.open('./h06jimni_db.db', { Promise });
 
@@ -30,8 +32,10 @@ selectUser = async (userId) => {
 insertUser = async (email, firstname, lastname, password) => {
     try {
         const db = await dbCon;
-        const insertUser = 'INSERT INTO users (email, firstname, lastname, password) VALUES (?, ?, ?, ?)';
-        await db.run(insertUser, email, firstname, lastname, password);
+        bcrypt.hash(password, saltrounds, async (err, hash) => {
+            const insertUser = 'INSERT INTO users (email, firstname, lastname, password) VALUES (?, ?, ?, ?)';
+            await db.run(insertUser, email, firstname, lastname, hash);
+        });
     } catch (error) {
         throw new Error(error);
     }
@@ -60,9 +64,9 @@ updateUser = async (email, firstname, lastname, password, userId) => {
 }
 
 module.exports = {
-    getUsers : selectUsers,
+    getUsers: selectUsers,
     getUser: selectUser,
-    addUser : insertUser,
+    addUser: insertUser,
     delUser: deleteUser,
     updUser: updateUser,
 }

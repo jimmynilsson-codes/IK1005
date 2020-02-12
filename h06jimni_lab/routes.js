@@ -1,6 +1,8 @@
 const routes = require('express').Router();
 const products = require('./products');
 const users = require('./users');
+const categories = require('./categories');
+
 
 routes.get('/', (req, res) => {
     res.json({ user: 'h06jimni@du.se' });
@@ -88,7 +90,12 @@ routes.get('/getuser/:id', async (req, res) => {
 
 routes.post('/adduser/', async (req, res) => {
     try {
+        const emailValidate = /^([a-z\d\.-]+)@([a-z\d-]+)\.([a-z]{2,8})(\.[a-z]{2,8})?$/;
         const userEmail = req.body.email;
+        
+        if (!emailValidate.test(userEmail)) {
+            throw new Error('Email invalid.');
+        }
         const userFirstname = req.body.firstname;
         const userLastname = req.body.lastname;
         const userPassword = req.body.password;
@@ -120,7 +127,62 @@ routes.put('/updateuser/:id', async (req, res) => {
         const userId = req.params.id;
 
         await users.updUser(userEmail, userFirstname, userLastname, userPassword, userId);
-        res.json({status: 'User have been updated.'});
+        res.json({ status: 'User have been updated.' });
+    } catch (error) {
+        res.json(error);
+    }
+});
+
+routes.get('/getcategories/', async (req, res) => {
+    try {
+        categoriesInDb = await categories.getCategories();
+
+        res.json(categoriesInDb);
+    } catch (error) {
+        res.json(error);
+    }
+});
+
+routes.get('/getcategory/:id', async (req, res) => {
+    try {
+        const categoryId = req.params.id;
+        const categoryInDb = await categories.getCategory(categoryId);
+
+        res.json(categoryInDb);
+    } catch (error) {
+        res.json(error);
+    }
+});
+
+routes.post('/addcategory/', async (req, res) => {
+    try {
+        const categoryName = req.body.name;
+
+        await categories.addCategory(categoryName);
+        res.json({ status: 'Category added.' });
+    } catch (error) {
+        res.json(error);
+    }
+});
+
+routes.delete('/delcategory/:id', async (req, res) => {
+    try {
+        const categoryId = req.params.id;
+        categories.delCategory(categoryId);
+
+        res.json({ status: 'Category was deleted.' });
+    } catch (error) {
+        res.json(error);
+    }
+});
+
+routes.put('/updatecategory/:id', async (req, res) => {
+    try {
+        const categoryName = req.body.name;
+        const cateogryId = req.params.id;
+        await categories.updCategory(categoryName, cateogryId);
+
+        res.json({ status: 'Category was updated.' });
     } catch (error) {
         res.json(error);
     }
