@@ -3,23 +3,29 @@ const Promise = require('bluebird');
 
 const dbCon = sqlite.open('./h06jimni_db.db', { Promise });
 
-selectProducts = async () => {
+//function to get all products from table 'products'
+const selectProducts = async () => {
     try {
         const db = await dbCon;
-        const selectAllProducts = 'SELECT products.name AS product_name, category.name AS category_name, products.description AS product_description, products.price AS product_price, products.id as product_id FROM products INNER JOIN category ON category.category_id = products.category_id';
-        const allProdRows = await db.all(selectAllProducts);
+        const selectAllProductsQuery = 'SELECT products.name AS product_name, category.name AS category_name,' 
+        + 'products.description AS product_description, products.price AS product_price, products.id as product_id ' 
+        + 'FROM products INNER JOIN category ON category.category_id = products.category_id';
+        const allProdRows = await db.all(selectAllProductsQuery);
 
         return allProdRows;
     } catch (error) {
-        throw new Error(error);
+        throw error;
     }
 };
 
-selectProduct = async (productId) => {
+//function to get product based on incoming parameter 'productId' from table 'products'
+const selectProduct = async (productId) => {
     try {
         const db = await dbCon;
-        selectProduct = 'SELECT name, description, price, id, category_id FROM products WHERE id = ?';
-        const prodRow = await db.get(selectProduct, productId);
+        const selectProductQuery = 'SELECT products.name AS product_name, category.name AS category_name,' 
+        + ' products.description AS product_description, products.price AS product_price, products.id as product_id' 
+        + ' FROM products INNER JOIN category ON category.category_id = products.category_id WHERE id = ?';
+        const prodRow = await db.get(selectProductQuery, productId);
 
         return prodRow;
     } catch (error) {
@@ -27,32 +33,49 @@ selectProduct = async (productId) => {
     }
 };
 
-insertProduct = async (name, description, price, category_id) => {
+//function to get products by category based on incoming parameter 'categoryName' from table 'products'
+const selectProductByCategory = async (categoryName) => {
     try {
         const db = await dbCon;
-        const insertProduct = 'INSERT INTO products (name, description, price, category_id) VALUES (?, ?, ?, ?)';
-        await db.run(insertProduct, name, description, price, category_id);
+        const selectProductByCategoryQuery = 'SELECT products.name as product_name, category.name AS category_name' 
+        + ' FROM products INNER JOIN category ON category.category_id = products.category_id WHERE category_name = ?';
+        const prodRowByCat = await db.all(selectProductByCategoryQuery, categoryName);
+
+        return prodRowByCat;
+    } catch (error) {
+        throw error;
+    }
+}
+
+//function to insert product with parameter 'productName', 'productDescription', 'productPrice', 'category_id' to table 'products' 
+const insertProduct = async (productName, productDescription, productPrice, category_id) => {
+    try {
+        const db = await dbCon;
+        const insertProductQuery = 'INSERT INTO products (name, description, price, category_id) VALUES (?, ?, ?, ?)';
+        await db.run(insertProductQuery, productName, productDescription, productPrice, category_id);
     } catch (error) {
         throw new Error(error);
     }
 };
 
-deleteProduct = async (productId) => {
+//function to delete product from table 'products' based on parameter 'productId'
+const deleteProduct = async (productId) => {
     try {
         const db = await dbCon;
-        const deleteProduct = 'DELETE FROM products WHERE id = ?';
+        const deleteProductQuery = 'DELETE FROM products WHERE id = ?';
 
-        await db.run(deleteProduct, productId);
+        await db.run(deleteProductQuery, productId);
     } catch (error) {
         throw new Error(error);
     }
 };
 
-updateProduct = async (name, description, price, category_id, productId) => {
+//function to update product based on 'productId' with parameter 'productName', 'productDescription', 'productPrice', 'category_id' to table 'products' 
+const updateProduct = async (productName, productDescription, productPrice, category_id, productId) => {
     try {
         const db = await dbCon;
-        const updateProduct = 'UPDATE products SET name = ?, description = ?, price = ?, category_id = ? WHERE id = ?';
-        await db.run(updateProduct, name, description, price, category_id, productId);
+        const updateProductQuery = 'UPDATE products SET name = ?, description = ?, price = ?, category_id = ? WHERE id = ?';
+        await db.run(updateProductQuery, name, description, price, category_id, productId);
     } catch (error) {
         throw new Error(error);
     }
@@ -64,4 +87,5 @@ module.exports = {
     addProduct: insertProduct,
     delProduct: deleteProduct,
     updProduct: updateProduct,
+    getProdByCat : selectProductByCategory,
 };

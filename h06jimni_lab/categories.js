@@ -3,7 +3,8 @@ const Promise = require('bluebird');
 
 const dbCon = sqlite.open('./h06jimni_db.db', { Promise });
 
-selectCategories = async () => {
+//function to get all categories from table 'categories'
+const selectCategories = async () => {
     try {
         const db = await dbCon;
         const selectAllCategories = 'SELECT name, category_id FROM category';
@@ -15,7 +16,8 @@ selectCategories = async () => {
     }
 };
 
-selectCategory = async (categoryId) => {
+//function to get category based on incoming parameter 'categoryId' from table 'categories'
+const selectCategory = async (categoryId) => {
     try {
         const db = await dbCon;
         const selectCategory = 'SELECT name, category_id FROM category WHERE category_id = ?';
@@ -27,7 +29,8 @@ selectCategory = async (categoryId) => {
     }
 };
 
-insertCategory = async (categoryName) => {
+//function to insert category with parameter 'categoryName' to table 'categories' 
+const insertCategory = async (categoryName) => {
     try {
         const db = await dbCon;
         const insertCategory = 'INSERT INTO category (name) VALUES (?)';
@@ -38,7 +41,8 @@ insertCategory = async (categoryName) => {
     }
 };
 
-deleteCategory = async (categoryId) => {
+//function to delete category from table 'categories' based on parameter 'categoryId'
+const deleteCategory = async (categoryId) => {
     try {
         const db = await dbCon;
         const deleteCategory = 'DELETE FROM category WHERE category_id = ?';
@@ -49,7 +53,8 @@ deleteCategory = async (categoryId) => {
     }
 };
 
-updateCategory = async (categoryName ,categoryId) => {
+//function to update category based on 'categoryId' with parameter 'categoryName', to table 'categories' 
+const updateCategory = async (categoryName ,categoryId) => {
     try {
         const db = await dbCon;
         const updateCategory = 'UPDATE category SET name = ? WHERE category_id = ?';
@@ -67,7 +72,3 @@ module.exports = {
     delCategory: deleteCategory,
     updCategory: updateCategory,
 }
-
-//gör getmetod för att visa produkter som tillhör en viss kategori
-
-//SELECT products.name AS product_name, products.price AS product_price, products.id AS product_id, category.name AS category_name FROM products INNER JOIN category ON category.category_id = products.category_id WHERE category.category_id = 1;
