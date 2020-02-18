@@ -49,8 +49,8 @@ const userValidation = (userData) => {
         passwordValid: /^[\w@-]{6,30}$/.test('11')
     };
 
-    for (valid in userDataValidation) {
-        if (userDataValidation[valid]) {
+    for (isValid in userDataValidation) {
+        if (userDataValidation[isValid]) {
             console.log('true');
         } else {
             console.log('false');
