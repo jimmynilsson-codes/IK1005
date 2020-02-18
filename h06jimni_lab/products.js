@@ -29,7 +29,7 @@ const selectProduct = async (productId) => {
 
         return prodRow;
     } catch (error) {
-        throw new Error(error);
+        throw error;
     }
 };
 
@@ -54,7 +54,7 @@ const insertProduct = async (productName, productDescription, productPrice, cate
         const insertProductQuery = 'INSERT INTO products (name, description, price, category_id) VALUES (?, ?, ?, ?)';
         await db.run(insertProductQuery, productName, productDescription, productPrice, category_id);
     } catch (error) {
-        throw new Error(error);
+        throw error;
     }
 };
 
@@ -66,7 +66,7 @@ const deleteProduct = async (productId) => {
 
         await db.run(deleteProductQuery, productId);
     } catch (error) {
-        throw new Error(error);
+        throw error;
     }
 };
 
@@ -75,11 +75,11 @@ const updateProduct = async (productName, productDescription, productPrice, cate
     try {
         const db = await dbCon;
         const updateProductQuery = 'UPDATE products SET name = ?, description = ?, price = ?, category_id = ? WHERE id = ?';
-        await db.run(updateProductQuery, name, description, price, category_id, productId);
+        await db.run(updateProductQuery, productName, productDescription, productPrice, category_id, productId);
     } catch (error) {
-        throw new Error(error);
+        throw error;
     }
-}
+};
 
 module.exports = {
     getProducts: selectProducts,

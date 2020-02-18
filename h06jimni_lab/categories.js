@@ -12,7 +12,7 @@ const selectCategories = async () => {
 
         return allCategoryRows;
     } catch (error) {
-        throw new Error(error);
+        throw error;
     }
 };
 
@@ -25,7 +25,7 @@ const selectCategory = async (categoryId) => {
 
         return categoryRow;
     } catch (error) {
-        throw new Error(error);
+        throw error;
     }
 };
 
@@ -37,7 +37,7 @@ const insertCategory = async (categoryName) => {
 
         await db.run(insertCategory, categoryName);
     } catch (error) {
-        throw new Error(error);
+        throw error;
     }
 };
 
@@ -49,7 +49,7 @@ const deleteCategory = async (categoryId) => {
 
         await db.run(deleteCategory, categoryId);
     } catch (error) {
-        throw new Error(error);
+        throw error;
     }
 };
 
@@ -61,7 +61,7 @@ const updateCategory = async (categoryName ,categoryId) => {
 
         await db.run(updateCategory, categoryName, categoryId);
     } catch (error) {
-        throw new Error(error);
+        throw error;
     }
 };
 

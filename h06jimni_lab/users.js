@@ -14,7 +14,7 @@ const selectUsers = async () => {
 
         return allUserRows;
     } catch (error) {
-        throw new Error(error);
+        throw error;
     }
 }
 
@@ -27,7 +27,7 @@ const selectUser = async (userId) => {
 
         return userRow;
     } catch (error) {
-        throw new Error(error);
+        throw error;
     }
 };
 
@@ -40,7 +40,7 @@ const insertUser = async (userEmail, userFirstname, userLastname, userPassword) 
             await db.run(insertUser, userEmail, userFirstname, userLastname, hash);
         });
     } catch (error) {
-        throw new Error(error);
+        throw error;
     }
 };
 
@@ -52,7 +52,7 @@ const deleteUser = async (userId) => {
 
         await db.run(deleteUser, userId);
     } catch (error) {
-        throw new Error(error);
+        throw error;
     }
 };
 
@@ -60,11 +60,13 @@ const deleteUser = async (userId) => {
 const updateUser = async (userEmail, userFirstname, userLastname, userPassword, userId) => {
     try {
         const db = await dbCon;
-        const updateUser = 'UPDATE users SET email = ?, firstname = ?, lastname = ?, password = ? WHERE id = ?';
+        bcrypt.hash(userPassword, saltrounds, async (err, hash) => {
+            const updateUser = 'UPDATE users SET email = ?, firstname = ?, lastname = ?, password = ? WHERE id = ?';
 
-        await db.run(updateUser, email, firstname, lastname, password, userId);
+            await db.run(updateUser, userEmail, userFirstname, userLastname, hash, userId);
+        });
     } catch (error) {
-        throw new Error(error);
+        throw error;
     }
 }
 

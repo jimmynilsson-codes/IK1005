@@ -7,7 +7,6 @@ const routes = require('./routes');
 app.use(express.json());
 app.use(routes);
 
-
 app.listen(port, (req, res) => {
     console.log(`Server running on http://${hostname}:${port}`);
 });
