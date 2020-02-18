@@ -1,28 +1,26 @@
 const sqlite = require('sqlite');
 const Promise = require('bluebird');
-const bcrypt = require('bcrypt');
-const saltrounds = 10;
 
 const dbCon = sqlite.open('./h06jimni_db.db', { Promise });
 
 //function to get all users from table 'users'
-const selectUsers = async () => {
+const getUsers = async () => {
     try {
         const db = await dbCon;
-        const selectAllUsers = 'SELECT email, firstname, lastname, password, id FROM users';
+        const selectAllUsers = 'SELECT email, firstname, lastname, id FROM users';
         const allUserRows = await db.all(selectAllUsers);
 
         return allUserRows;
     } catch (error) {
         throw error;
     }
-}
+};
 
 //function to get user based on incoming parameter 'userId' from table 'users'
-const selectUser = async (userId) => {
+const getUser = async (userId) => {
     try {
         const db = await dbCon;
-        const selectUser = 'SELECT email, firstname, lastname, password, id FROM users WHERE id = ?';
+        const selectUser = 'SELECT email, firstname, lastname, id FROM users WHERE id = ?';
         const userRow = db.get(selectUser, userId);
 
         return userRow;
@@ -32,13 +30,12 @@ const selectUser = async (userId) => {
 };
 
 //function to insert user with parameter 'userEmail', 'userFirstname', 'userLastname', 'userPassword' to table 'users' 
-const insertUser = async (userEmail, userFirstname, userLastname, userPassword) => {
+const addUser = async (userEmail, userFirstname, userLastname, hash) => {
     try {
         const db = await dbCon;
-        bcrypt.hash(userPassword, saltrounds, async (err, hash) => {
-            const insertUser = 'INSERT INTO users (email, firstname, lastname, password) VALUES (?, ?, ?, ?)';
-            await db.run(insertUser, userEmail, userFirstname, userLastname, hash);
-        });
+        const insertUser = 'INSERT INTO users (email, firstname, lastname, password) VALUES (?, ?, ?, ?)';
+        await db.run(insertUser, userEmail, userFirstname, userLastname, hash);
+
     } catch (error) {
         throw error;
     }
@@ -50,30 +47,30 @@ const deleteUser = async (userId) => {
         const db = await dbCon;
         const deleteUser = 'DELETE FROM users WHERE id = ?';
 
-        await db.run(deleteUser, userId);
+        const result = await db.run(deleteUser, userId);
+        return result;
     } catch (error) {
         throw error;
     }
 };
 
 //function to update user based on 'userId' with parameter 'userEmail', 'userFirstname', 'userLastname', 'userPassword' to table 'users' 
-const updateUser = async (userEmail, userFirstname, userLastname, userPassword, userId) => {
+const updateUser = async (userEmail, userFirstname, userLastname, hash, userId) => {
     try {
         const db = await dbCon;
-        bcrypt.hash(userPassword, saltrounds, async (err, hash) => {
-            const updateUser = 'UPDATE users SET email = ?, firstname = ?, lastname = ?, password = ? WHERE id = ?';
+        const updateUser = 'UPDATE users SET email = ?, firstname = ?, lastname = ?, password = ? WHERE id = ?';
 
-            await db.run(updateUser, userEmail, userFirstname, userLastname, hash, userId);
-        });
+        const result = await db.run(updateUser, userEmail, userFirstname, userLastname, hash, userId);
+        return result;
     } catch (error) {
         throw error;
     }
-}
+};
 
 module.exports = {
-    getUsers: selectUsers,
-    getUser: selectUser,
-    addUser: insertUser,
-    delUser: deleteUser,
-    updUser: updateUser,
-}
+    getUsers: getUsers,
+    getUser: getUser,
+    addUser: addUser,
+    deleteUser: deleteUser,
+    updateUser: updateUser,
+};

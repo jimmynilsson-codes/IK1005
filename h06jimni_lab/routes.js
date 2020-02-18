@@ -5,6 +5,7 @@ const categories = require('./categories');
 const datavalidation = require('./datavalidation');
 const login = require('./login');
 const bcrypt = require('bcrypt');
+const saltRounds = 10;
 
 //endpoint to root
 routes.get('/', (req, res) => {
@@ -15,9 +16,10 @@ routes.get('/', (req, res) => {
 routes.get('/products/', async (req, res) => {
     try {
         const productsInDb = await products.getProducts();
+
         res.json(productsInDb);
     } catch (error) {
-        res.json(error);
+        res.json({ status: error.message });
     }
 });
 
@@ -26,10 +28,14 @@ routes.get('/product/:id', async (req, res) => {
     try {
         const productId = req.params.id;
         const productInDb = await products.getProduct(productId);
-        res.json(productInDb);
+
+        if (productInDb !== undefined) {
+            res.json(productInDb);
+        } else {
+            throw Error(`No product with id ${productId} was found.`);
+        }
     } catch (error) {
-        console.log(error);
-        res.json(error);
+        res.json({ status: error.message });
     }
 });
 
@@ -37,28 +43,36 @@ routes.get('/product/:id', async (req, res) => {
 routes.get('/productsbycat/:id', async (req, res) => {
     try {
         const categoryName = req.params.id;
-        const prodInDbByCat = await products.getProdByCat(categoryName);
+        const prodInDbByCat = await products.getProductByCategory(categoryName);
 
-        res.json(prodInDbByCat);
+        if (prodInDbByCat.length !== 0) {
+            res.json(prodInDbByCat);
+        } else {
+            throw Error(`No products in category ${categoryName} was found.`);
+        }
     } catch (error) {
-        res.json(error);
+        res.json({ status: error.message });
     }
 });
 
 //endpoint to add product
 routes.post('/product/', async (req, res) => {
     try {
-        const productName = req.body.name;
-        const productDesc = req.body.description;
-        const productPrice = req.body.price;
-        const productCategoryId = req.body.category_id;
+        const prodData = {
+            productName: req.body.name,
+            productDesc: req.body.description,
+            productPrice: req.body.price,
+            productCategoryId: req.body.category_id,
+        };
 
-        const prodData = [productName, productDesc, productPrice, productCategoryId];
+        const validData = datavalidation.productValidation(prodData);
 
-        datavalidation.prodValidation(prodData);
-
-        await products.addProduct(productName, productDesc, productPrice, productCategoryId);
-        res.json({ status: 'Product added.' });
+        if (validData) {
+            await products.addProduct(prodData.productName, prodData.productDesc, prodData.productPrice, prodData.productCategoryId);
+            res.json({ status: 'Product added.' });
+        } else {
+            throw Error('Invalid input.');
+        }
     } catch (error) {
         res.json({ status: error.message });
     }
@@ -68,34 +82,45 @@ routes.post('/product/', async (req, res) => {
 routes.delete('/product/:id', async (req, res) => {
     try {
         const productId = req.params.id;
-        await products.delProduct(productId);
+        const deletedProduct = await products.deleteProduct(productId);
 
-        res.json({ status: 'Product deleted.' });
+        if (deletedProduct.changes !== 0) {
+            res.json({ status: 'Product deleted.' });
+        } else {
+            throw Error(`No product with id ${productId} was found.`);
+        }
+
     } catch (error) {
-        res.json(error);
+        res.json({ status: error.message });
     }
 });
 
-//endpoint to update product based on parameter id
+//endpoint to update product based on request body object
 routes.put('/product/', async (req, res) => {
     try {
-        const productId = req.body.id;
-        const productName = req.body.name;
-        const productDesc = req.body.description;
-        const productPrice = req.body.price;
-        const productCategoryId = req.body.category_id;
-        if (productId.length === 0) {
-            throw Error('Invalid input');
+        const prodData = {
+            productId: req.body.id,
+            productName: req.body.name,
+            productDesc: req.body.description,
+            productPrice: req.body.price,
+            productCategoryId: req.body.category_id,
+        };
+
+        const validData = datavalidation.productValidation(prodData);
+
+        if (validData) {
+            const updatedProduct = await products.updateProduct(prodData.productName, prodData.productDesc, prodData.productPrice, prodData.productCategoryId, prodData.productId);
+
+            if (updatedProduct.changes !== 0) {
+                res.json({ status: 'Product updated.' });
+            } else {
+                throw Error(`No product with id ${prodData.productId} was found.`);
+            }
+        } else {
+            throw Error('Invalid input.');
         }
-
-        prodData = [productName, productDesc, productPrice, productCategoryId];
-
-        datavalidation.prodValidation(prodData);
-
-        await products.updProduct(productName, productDesc, productPrice, productCategoryId, productId);
-        res.json({ status: 'Product updated.' });
     } catch (error) {
-        res.json(error);
+        res.json({ status: error.message });
     }
 });
 
@@ -106,7 +131,7 @@ routes.get('/users/', async (req, res) => {
 
         res.json(usersInDb);
     } catch (error) {
-        res.json(error);
+        res.json({ status: error.message });
     }
 });
 
@@ -116,33 +141,36 @@ routes.get('/user/:id', async (req, res) => {
         userId = req.params.id;
         const userInDb = await users.getUser(userId);
 
-        res.json(userInDb);
+        if (userInDb !== undefined) {
+            res.json(userInDb);
+        } else {
+            throw Error(`No user with id ${userId} was found.`);
+        }
     } catch (error) {
-        res.json(error);
+        res.json({ status: error.message });
     }
 });
 
 //enpoint to add user
 routes.post('/user/', async (req, res) => {
     try {
-        const userEmail = req.body.email;
-        const userFirstname = req.body.firstname;
-        const userLastname = req.body.lastname;
-        const userPassword = req.body.password;
-
-        const userInputData = { 
-            email: userEmail,
-            firstname: userFirstname,
-            lastname: userLastname,
-            password: userPassword
+        const userData = {
+            email: req.body.email,
+            firstname: req.body.firstname,
+            lastname: req.body.lastname,
+            password: req.body.password
         };
 
-        //const userData = [userEmail, userFirstname, userLastname, userPassword];
+        const validData = datavalidation.userValidation(userData);
 
-        datavalidation.userValidation(userInputData);
-
-        await users.addUser(userEmail, userFirstname, userLastname, userPassword);
-        res.json({ status: 'User added.' });
+        if (validData) {
+            const salt = await bcrypt.genSalt(saltRounds);
+            const hash = await bcrypt.hash(userData.password, salt);
+            await users.addUser(userData.email, userData.firstname, userData.lastname, hash);
+            res.json({ status: 'User added.' });
+        } else {
+            throw Error('Invalid input.');
+        }
     } catch (error) {
         res.json({ status: error.message });
     };
@@ -153,31 +181,44 @@ routes.delete('/user/:id', async (req, res) => {
     try {
         const userId = req.params.id;
 
-        await users.delUser(userId);
-        res.json({ status: 'User has been deleted.' });
+        const deletedUser = await users.deleteUser(userId);
+
+        if (deletedUser.changes !== 0) {
+            res.json({ status: 'User deleted.' });
+        } else {
+            throw Error(`No user with id ${userId} was found.`);
+        }
     } catch (error) {
-        res.json(error);
+        res.json({ status: error.message });
     }
 });
 
 //endpoint to update user based on parameter id
 routes.put('/user/', async (req, res) => {
     try {
-        const userEmail = req.body.email;
-        const userFirstname = req.body.firstname;
-        const userLastname = req.body.lastname;
-        const userPassword = req.body.password;
-        const userId = req.body.id;
-        if (userId.length === 0) {
-            throw Error('Invalid input');
+        const userData = {
+            email: req.body.email,
+            firstname: req.body.firstname,
+            lastname: req.body.lastname,
+            password: req.body.password,
+            id: req.body.id,
+        };
+
+        const validData = datavalidation.userValidation(userData);
+
+        if (validData) {
+            const salt = await bcrypt.genSalt(saltRounds);
+            const hash = await bcrypt.hash(userData.password, salt);
+            const updatedUser = await users.updateUser(userData.email, userData.firstname, userData.lastname, hash, userData.id);
+
+            if (updatedUser.changes !== 0) {
+                res.json({ status: 'User updated.' });
+            } else {
+                throw Error(`No user with id ${userData.id} was found.`);
+            }
+        } else {
+            throw Error('Invalid input.');
         }
-
-        const userData = [userEmail, userFirstname, userLastname, userPassword];
-
-        datavalidation.userValidation(userData);
-
-        await users.updUser(userEmail, userFirstname, userLastname, userPassword, userId);
-        res.json({ status: 'User have been updated.' });
     } catch (error) {
         res.json({ status: error.message });
     }
@@ -190,7 +231,7 @@ routes.get('/categories/', async (req, res) => {
 
         res.json(categoriesInDb);
     } catch (error) {
-        res.json(error);
+        res.json({ status: error.message });
     }
 });
 
@@ -200,9 +241,13 @@ routes.get('/category/:id', async (req, res) => {
         const categoryId = req.params.id;
         const categoryInDb = await categories.getCategory(categoryId);
 
-        res.json(categoryInDb);
+        if (categoryInDb !== undefined) {
+            res.json(categoryInDb);
+        } else {
+            throw Error(`No category with id ${categoryId} was found.`);
+        }
     } catch (error) {
-        res.json(error);
+        res.json({ status: error.message });
     }
 });
 
@@ -211,10 +256,14 @@ routes.post('/category/', async (req, res) => {
     try {
         const categoryName = req.body.name;
 
-        datavalidation.catValidation(categoryName);
+        const validData = datavalidation.categoryValidation(categoryName);
 
-        await categories.addCategory(categoryName);
-        res.json({ status: 'Category added.' });
+        if (validData) {
+            await categories.addCategory(categoryName);
+            res.json({ status: 'Category added.' });
+        } else {
+            throw Error('Invalid input.');
+        }
     } catch (error) {
         res.json({ status: error.message });
     }
@@ -224,28 +273,38 @@ routes.post('/category/', async (req, res) => {
 routes.delete('/category/:id', async (req, res) => {
     try {
         const categoryId = req.params.id;
-        categories.delCategory(categoryId);
+        const deletedCategory = await categories.deleteCategory(categoryId);
 
-        res.json({ status: 'Category was deleted.' });
+        if (deletedCategory.changes !== 0) {
+            res.json({ status: 'Category deleted.' });
+        } else {
+            throw Error(`No category with id ${categoryId} was found.`);
+        }
     } catch (error) {
-        res.json(error);
+        res.json({ status: error.message });
     }
 });
 
 //endpoint to update category based on parameter id
 routes.put('/category/', async (req, res) => {
     try {
-        const categoryName = req.body.name;
-        const categoryId = req.body.id;
-        if (categoryId.length === 0) {
-            throw Error('Invalid input');
+        const categoryData = {
+            categoryName: req.body.name,
+            categoryId: req.body.id,
         }
 
-        datavalidation.catValidation(categoryName);
+        const validData = datavalidation.categoryValidation(categoryData);
 
-        await categories.updCategory(categoryName, categoryId);
-
-        res.json({ status: 'Category was updated.' });
+        if (validData) {
+            const updatedCategory = await categories.updateCategory(categoryData.categoryName, categoryData.categoryId);
+            if (updatedCategory.changes !== 0) {
+                res.json({ status: 'Category updated.' });
+            } else {
+                throw Error(`No category with id ${categoryData.categoryId} was found.`);
+            }
+        } else {
+            throw Error('Invalid input.');
+        }
     } catch (error) {
         res.json({ status: error.message });
     }
@@ -258,16 +317,15 @@ routes.post('/login/', async (req, res) => {
         const password = req.body.password;
 
         const hash = await login.checkLogin(email);
+        const isMatch = await bcrypt.compare(password, hash.password);
 
-        const match = await bcrypt.compare(password, hash.password);
-
-        if (match) {
+        if (isMatch) {
             res.json({ status: `${email} logged in.` });
         } else {
             res.json({ status: 'Invalid password!' });
         }
     } catch (error) {
-        res.json(error);
+        res.json({ status: error.message });
     }
 });
 
