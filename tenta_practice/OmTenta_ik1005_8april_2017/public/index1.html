@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=, initial-scale=1.0">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(() => {
+            getArtworks();
+
+            $('body').on('click', 'a', () => {
+                //$('#artworks').hide();
+                //$('#artworks').empty();
+                const id = $(this).val();
+                console.log(id);
+
+            });
+        });
+
+        const getArtworks = () => {
+            var maxbid;
+            $.ajax({
+                url: '/',
+                type: 'GET',
+                success: (artworks) => {
+                    artworks.forEach(temp => {
+                        const id = temp.id;
+                        $.ajax({
+                            url: '/maxbid/' + id,
+                            type: 'GET',
+                            async: false,
+                            success: (data) => {
+                                maxbid = data.maxbid;
+                            }
+                        })
+                        $('#artworks').append(
+                            `<h3>${temp.painting} - ${temp.artist}</h3>` +
+                            `<p>Högsta bud: ${maxbid} kr &emsp;` +
+                            `<a id="1" class="${temp.id}" href="#">Visa bud</a>&emsp;` +
+                            `<a href = "#">Lägg bud</a></p>`
+                        );
+                    });
+                }
+            });
+        }
+    </script>
+    <title>Document</title>
+</head>
+
+<body>
+    <div id="artworks">
+    </div>
+    <a class="hej" href="#">asdadasdsa</a>
+</body>
+
+</html>
